@@ -1,0 +1,175 @@
+---
+title: "Assignment 6"
+author: "Mandi Bluth"
+date: "2024-09-23"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(broom)
+```
+
+## Question 1
+
+Presidential candidates for the 2020 US election have been coded into a data frame that is available on the github website for this textbook:
+
+```{r}
+prez <- readr::read_csv('https://raw.githubusercontent.com/BuscagliaR/STA_444_v2/main/data-raw/Prez_Candidate_Birthdays')
+```
+
+a) Re-code the Gender column to have Male and Female levels. Similarly convert the party variable to be Democratic or Republican. You may write this using a for() loop with an if(){ ... }else{...} structure nested inside, or simply using a mutate() statement with the ifelse() command inside. I believe the second option is MUCH easier.
+
+```{r}
+prez <- prez %>% 
+  mutate(Gender = ifelse(Gender == "F", 'Female', 'Male')) %>%
+  mutate(Party = ifelse(Party == "D", "Democratic", "Republican"))
+head(prez)
+```
+
+b) Bernie Sanders was registered as an Independent up until his 2016 presidential run. Change his political party value into ‘Independent’.
+
+```{r}
+prez <- prez %>% 
+  mutate(Party = ifelse(Candidate == "Bernie Sanders", "Independent", Party))
+```
+
+## Question 2
+
+The Uniform (a, b) distribution is defined and represents a random variable that takes on any value of between a and b with equal probability. Technically since there are an infinite number of values between a and b, each value has a probability of 0 of being selected and I should say each interval of width d has equal probability. It has the density function
+{in textbook} The R function dunif() evaluates this density function for the above defined values of x, a, and b. Somewhere in that function, there is a chunk of code that evaluates the density for arbitrary values of  
+x. Run this code a few times and notice sometimes the result is  
+0 and sometimes it is 0.16666667.
+
+```{r}
+a <- 4      # The min and max values we will use for this example
+b <- 10     # Could be anything, but we need to pick something
+    
+x <- runif(n=1, 0,10)  # one random value between 0 and 10
+
+# what is value of f(x) at the randomly selected x value?  
+dunif(x, a, b)
+```
+
+We will write a sequence of statements that utilizes if statements to appropriately calculate the density of x, assuming that a, b , and x are given to you, but your code won’t know if x is between a and b. That is, your code needs to figure out if it is and give either 1/(b-a) or 0.
+
+a) We could write a set of if else statements.
+
+```{r}
+a <- 4
+b <- 10
+x <- runif(n=1, 0,10)  # one random value between 0 and 10 
+        
+if( x < a ){
+  result <- 0     # Replace ???? with something appropriate!
+}else if( x <= b ){
+  result <- 1/(b-a)
+}else{
+  result <- 0
+}
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+
+```{r, echo = FALSE}
+x <- 3
+if( x < a ){
+  result <- 0     # Replace ???? with something appropriate!
+}else if( x <= b ){
+  result <- 1/(b-a)
+}else{
+  result <- 0
+}
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+
+x <- 5
+if( x < a ){
+  result <- 0     # Replace ???? with something appropriate!
+}else if( x <= b ){
+  result <- 1/(b-a)
+}else{
+  result <- 0
+}
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+
+Replace the ???? with the appropriate value, either 0 or  
+1/(b minus a). Run the code repeatedly until you are certain that it is calculating the correct density value.
+
+b)  We could perform the logical comparison all in one comparison. Recall that we can use & to mean “and” and | to mean “or”. In the following two code chunks, replace the ??? with either & or | to make the appropriate result.
+
+i) 
+```{r}
+x <- runif(n=1, 0,10)  # one random value between 0 and 10 
+if( (a<=x) & (x<=b) ){
+  result <- 1/(b-a)
+  }else{
+    result <- 0
+  }
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+
+```{r, echo = FALSE}
+x <- 3
+if( (a<=x) & (x<=b) ){
+  result <- 1/(b-a)
+  }else{
+    result <- 0
+  }
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+x <- 5
+if( (a<=x) & (x<=b) ){
+  result <- 1/(b-a)
+  }else{
+    result <- 0
+  }
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+
+ii)
+```{r}
+x <- runif(n=1, 0,10)  # one random value between 0 and 10 
+if( (x<a) | (b<x) ){
+  result <- 0
+  }else{
+    result <- 1/(b-a)
+  }
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+ 
+```{r, echo=FALSE}
+x <- 3
+if( (x<a) | (b<x) ){
+  result <- 0
+  }else{
+    result <- 1/(b-a)
+  }
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+x <- 5
+if( (x<a) | (b<x) ){
+  result <- 0
+  }else{
+    result <- 1/(b-a)
+  }
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+
+iii)
+```{r}
+x <- runif(n=1, 0,10)  # one random value between 0 and 10 
+result <- ifelse( a<=x & x<=b, 1/(b-a), 0 )
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+
+```{r, echo = FALSE}
+x <- 3
+result <- ifelse( a<=x & x<=b, 1/(b-a), 0 )
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+x <- 5
+result <- ifelse( a<=x & x<=b, 1/(b-a), 0 )
+print(paste('x=',round(x,digits=3), '  result=', round(result,digits=3)))
+```
+

@@ -1,0 +1,143 @@
+---
+title: "Assignment 5"
+author: "Mandi Bluth"
+date: "2024-09-16"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
+library(broom)
+library(tinytex)
+```
+
+# Chapter 5
+
+## Question 1
+
+Using the trees data frame that comes pre-installed in R, we will fit the regression model that uses the tree Height as a predictor to explain the Volume of wood harvested from the tree. We will then plot our model with some of the information of the regression model on the graph.
+
+a) Graph the data
+
+```{r}
+data(trees)
+```
+
+```{r}
+ggplot(trees, aes(x=Height, y=Volume))+
+         geom_point()
+```
+
+b) Fit a lm model using the command model <- lm(Volume ~ Height, data=trees).
+
+```{r}
+trees.lm <- lm(Volume ~ Height, data=trees)
+```
+
+c) Print out the table of coefficients with estimate names, estimated value, standard error, and upper and lower 95% confidence intervals.
+
+```{r}
+summary(trees.lm)$coef
+predict(trees.lm)
+confint(trees.lm)
+```
+
+d) Add the model fitted values to the trees data frame along with the confidence interval.
+
+```{r}
+trees <- trees %>%
+  dplyr::select( -matches('fit'), -matches('lwr'), -matches('upr') ) %>%
+  cbind( predict(trees.lm, newdata=., interval='confidence') )
+head(trees)
+```
+
+e) Graph the data including now the fitted regression line and confidence interval ribbon.
+
+```{r}
+ggplot(trees, aes(x=Height)) +
+  geom_point( aes(y=Volume) ) +
+  geom_line( aes(y=fit) ) +
+  geom_ribbon( aes( ymin=lwr, ymax=upr), alpha=.3 )
+```
+
+f) Add the R-squared value as an annotation to the graph.
+
+```{r}
+Rsq_string <- 
+  broom::glance(trees.lm) %>%
+  select(r.squared) %>%
+  mutate(r.squared = round(r.squared, digits=3)) %>%
+  mutate(r.squared = paste('Rsq =', r.squared)) %>%
+  pull(r.squared)
+
+ggplot(trees, aes(x=Height)) +
+  geom_point( aes(y=Volume) ) +
+  geom_line( aes(y=fit) ) +
+  geom_ribbon( aes( ymin=lwr, ymax=upr), alpha=.3 )+
+  annotate('label', label=Rsq_string, x=70, y=60, size=7)
+```
+
+## Question 2
+
+The data set phbirths from the faraway package contains information on birth weight, gestational length, and smoking status of mother. We’ll fit a quadratic model to predict infant birth weight using the gestational time.
+
+a) Create two scatter plots of gestational length and birth weight, one for each smoking status.
+
+```{r}
+data("phbirths", package = "faraway")
+```
+
+```{r}
+ggplot(phbirths, aes(x=gestate, y=grams))+
+  geom_point()+
+  facet_grid(cols=vars(smoke))
+```
+
+b) Remove all the observations that are premature (less than 36 weeks). For the remainder of the problem, only use full-term births (greater than or equal to 36 weeks).
+
+```{r, results='hide'}
+phbirths2 <- phbirths %>% filter(gestate >= 36)
+```
+c) Fit the quadratic model
+
+```{r}
+model <- lm(grams ~ poly(gestate,2) * smoke, data=phbirths2)
+```
+
+d) Add the model fitted values to the phbirths data frame along with the regression model confidence intervals.
+
+```{r}
+phbirths2 <- phbirths2 %>%
+  dplyr::select( -matches('fit'), -matches('lwr'), -matches('upr') ) %>%
+  cbind( predict(model, newdata=., interval='confidence') )
+```
+
+e) Improve your graph from part (a) by adding layers for the model fits and confidence interval ribbon for the model fits.
+
+```{r}
+ggplot(phbirths2, aes(x=gestate, y=grams))+
+  geom_point()+
+  facet_grid(cols=vars(smoke))+
+  geom_line(aes(y=fit))+
+  geom_ribbon( aes( ymin=lwr, ymax=upr), alpha=.3 )
+  
+```
+
+f) Create a column for the residuals in the phbirths data set using any of the following:
+
+```{r}
+phbirths2$residuals = resid(model)
+phbirths2 <- phbirths2 %>% mutate( residuals = resid(model) )
+phbirths2 <- broom::augment(model, phbirths2)
+```
+
+g) Create a histogram of the residuals.
+```{r}
+ggplot(phbirths2, aes(x=residuals))+
+  geom_histogram()
+```
