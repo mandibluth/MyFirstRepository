@@ -1,0 +1,98 @@
+---
+title: 'STA 444 Practical F24 (MWF)'
+author: "Mandi Bluth"
+date: "`r format(Sys.time(),  '%B %d, %Y')`"
+output: pdf_document
+---
+
+# Instructions
+
+## You may use the book during the exam and may take until the end of the period.
+
+* **Change the header information within the RMD to contain your own name.**
+
+* **Answer all exercise prompts within the RMD.  All code must be shown.**
+
+* **Place answers into the blank R chunks given for each required response.**
+
+* **Compile the RMD into a PDF when finished.**
+
+* **Ensure all code is visible within the PDF.**
+
+* **Submit the PDF through our Canvas portal.**
+
+* **The practical is not graded - try your best!**
+
+## Exercise 1
+
+Specifically load the packages `ggplot2`, `dplyr`, and `broom`.  Be sure the code is displayed.  It is okay if warnings or messages are output.
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(broom)
+```
+
+
+## Exercise 2
+
+Load the data set `mtcars` from base R.  Display the first 6 rows of this data frame.
+
+```{r}
+data(mtcars)
+head(mtcars)
+```
+
+
+## Exercise 3
+
+Create a new column within `mtcars` called `wt01` that takes on the value `LightWeight` if less than the mean weight (`wt`) of the data set, or takes on the value `HeavyWeight` if greater than or equal to the mean weight. *This question should use dplyr commands to achieve the result.*
+
+```{r}
+mtcars <- mtcars %>%
+    mutate(wt01 = ifelse(wt < mean(mtcars$wt), 'LightWeight', 'HeavyWeight'))
+head(mtcars)
+```
+
+## Exercise 4
+
+Using the `mtcars` data, create a scatter graph with `hp` on the x-axis and `mpg` on the y-axis. Color the graph using the `cyl`. To get unique groups add the command `factor(cyl)` rather than just the variable `cyl` when coloring your graph.
+
+```{r}
+ggplot(data=mtcars,
+       mapping=aes(x=hp, y=mpg, color=factor(cyl)))+
+  geom_point()
+```
+
+## Exercise 5
+
+Split your graph above into a two paneled graph by adding a facet for `wt01`.
+
+```{r}
+ggplot(data=mtcars,
+       mapping=aes(x=hp, y=mpg, color=factor(cyl)))+
+  geom_point()+
+  facet_grid(cols=vars(wt01))
+```
+
+## Exercise 6
+
+Using the `mtcars` data, calculate the mean and standard deviation of `mpg` for each `cyl` and `wt01` combination. *Hint: group_by().*
+
+```{r}
+mtcars %>% group_by(cyl, wt01) %>% summarise( mean(mpg), sd(mpg))
+```
+
+## Exercise 7
+
+Estimate the model below using the `mtcars` data.
+```{r}
+model.mtcars <- lm(data = mtcars, mpg ~ hp*wt01)
+```
+
+Display the resulting coefficient estimates using the `broom` package.  Be sure to include the confidence intervals for each parameter.
+
+```{r}
+broom::tidy(model.mtcars, conf.int=TRUE)
+```
+
